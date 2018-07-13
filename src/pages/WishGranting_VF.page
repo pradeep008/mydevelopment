@@ -1,0 +1,482 @@
+<!-- ******************************************************************************************************************************
+Description : This page is used to display the wish form status
+*********************************************************************************************************************************** -->
+<apex:page controller="WishGranting_AC" applyBodyTag="false" sidebar="false" showHeader="false" docType="html-5.0" standardStylesheets="false" title="Make-A-Wish | Wish Form Tracker" cache="false">
+    <script>
+    function resizeIframe(obj) {
+        obj.style.height = 0;
+        obj.style.height = obj.contentWindow.document.body.scrollHeight + 'px';
+    }
+    </script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous" />
+    <link rel="stylesheet" type="text/css" href="{!URLFOR($Resource.prospective_assets, 'web/css/core.css')}" media="all" />
+    <style>
+        form label.form-check-label {display:block; cursor: pointer; font-family:"arial",helvetica, sans-serif; margin-bottom:0.4rem; padding-left:2rem; text-indent:-1.8rem; text-transform:none}
+        form label.form-check-label input {margin-right:1rem}
+        
+        .frmtrack-dashboard { width:60%; margin:0px auto}
+        form{border:0px;}
+        .frmtrack-dashboard form label.form-check-label{margin-bottom:0.4rem}
+        .frmtrack-dashboard .m-title{
+        font-family: "Lato", Arial, sans-serif;
+        font-weight: 900;
+        font-size: 1rem;
+        color: #4c4c4c;
+        text-transform: uppercase;
+         padding-left: 0;
+        }
+        .frmstatus-warn{
+            background: #ffb75d;
+            text-align: center;
+            color: #fff;
+            padding: 4px;
+            text-transform: uppercase;
+            width: 100%;
+            position: relative;
+            font-size: 0.8rem;
+            width: 62%;
+            height:30px;
+        }
+        .frmstatus-success{
+         background: #04844b !important;
+        }
+        .frmtrack-dashboard table tr th{
+            background: #0057B8;
+            min-height: 3rem;
+            border-radius: 2px;
+            margin-top: 2.8rem;
+            position: relative;
+            text-transform: none;
+            font-size: .7rem;
+            color:#fff;
+        }
+        .frmtrack-dashboard table tr td{
+            min-height: 3rem;
+            font-size: .7rem;
+            color: #75787B;
+            font-weight: 700;
+        }
+        .frmtrack-dashboard table tr:nth-child(even){
+             background-color: #eee;
+        }
+        .frmtrack-dashboard .btn-outer{
+            border: 0px;
+            padding: 0.4rem;
+            border-radius: 2px;
+            font-size: 0.9rem;
+        }
+        .frmtrack-dashboard .modal-title {
+            font-family: "Lato", Arial, sans-serif;
+            font-weight: 900;
+            font-size: 1rem;
+            color: #4c4c4c;
+            text-transform: uppercase;
+            padding-left: 0;
+        }
+        .m-c-t{
+         margin-top:5px;
+        }
+        @media screen and (max-width: 600px) {
+            .frmtrack-dashboard { width:100%}
+        }
+        /* notification */
+        .notification {position:relative; z-index: 1000}
+        .notification div {position:relative; background:#00C069; border-radius:.5rem; padding:1rem; color:#fff; text-align:center; margin-bottom: 10px;}
+        .notification div.error {background:#d9534f; color:#fff;}
+        .notification h6 {margin:0; text-transform:none !important}
+        .notification p {padding:0; margin:0; font-size:.8rem; font-family:arial,helvetica;}
+        
+        
+        /* Static notification */
+        .notification-static {position:fixed; top:5rem; left:50%; z-index: 1000}
+        .notification-static div {position:relative; left:-50%; background:#00C069; border-radius:.5rem; padding:1rem; color:#fff; text-align:center;}
+        .notification-static h6 {margin:0; text-transform:none !important}
+        .notification-static p {padding:0; margin:0; font-size:.8rem; font-family:arial,helvetica;}
+    </style>
+    <body class="vcp">
+        <span>
+            <header role="main-header" class="container">
+                <div class="row">
+                    <nav class="col-xs-3 col-xs-offset-9 pre-nav" role="top_menubar"></nav>
+                </div>
+                <div class="row">
+                    <apex:outputLink styleClass="center-block maw-logo" value=""><span class="sr-only" aria-label="Make-A-Wish">Make-A-Wish&reg;</span></apex:outputLink>
+                </div>
+                <nav class="navbar navbar-dark sub-nav">
+                    <div class="collapse navbar-toggleable-sm" id="exCollapsingNavbar">
+                    </div>
+                </nav>
+            </header>
+        </span>
+        <apex:form id="formId" styleClass="frmtrack-dashboard">
+            <main role="main" class="container">
+                <div class="row">
+                    <h1 class="col-sm-12">FORM TRACKER DASHBOARD</h1>
+                </div>
+                <div class="row">
+                    <section class="col-sm-12">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <label class="form-check-label">WISH CHILD NAME</label>
+                                <div class="m-title">
+                                    {!childName}
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="pull-sm-right">
+                                    <label class="form-check-label">All FORM STATUS</label>
+                                    <div class="{!IF(formStatus == 'Pending',"frmstatus-warn","frmstatus-warn frmstatus-success")}">{!formStatus}</div>
+                                    <div class="m-t-1">
+                                        <apex:commandButton styleClass="btn-primary btn-outer" value="Send/Add New Form" action="{!displayGuardianPopup}" /> 
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-responsive-md">
+                            <table class="table m-t-2">
+                                <thead>
+                                    <tr class="slds-text-heading--label">
+                                        <th class="slds-is-sortable" scope="col">
+                                            <div class="slds-truncate">Guardian Name
+                                            </div>
+                                        </th>
+                                        <th class="slds-is-sortable" scope="col">
+                                            <div class="slds-truncate">Relationship
+                                            </div>
+                                        </th>
+                                        <th class="slds-is-sortable" scope="col">
+                                            <div class="slds-truncate">Signed
+                                            </div>
+                                        </th>
+                                        <th class="slds-is-sortable" scope="col">
+                                            <div class="slds-truncate">Unsigned
+                                            </div>
+                                        </th>
+                                        <th class="slds-is-sortable" scope="col">
+                                            <div class="slds-truncate">Forms
+                                            </div>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <apex:repeat value="{!wishGrantingWrapperList}" var="wish" id="table">
+                                        <tr class="slds-hint-parent">
+                                            <td class="slds-truncate" data-label="Guardian Name" scope="row">{!wish.name}</td>
+                                            <td class="slds-truncate" data-label="Relationship" scope="row">{!wish.relationship}</td>
+                                            <td scope="row" data-label="Signed">{!wish.signed}</td>
+                                            <td data-label="Unsigned">{!wish.unsigned}</td>
+                                            <apex:outputPanel rendered="{!IF(wish.forms != 'Send',TRUE, FALSE)}">
+                                                <td scope="row" data-label="Forms"><apex:commandLink value="View" action="{!displaypopup}"> <apex:param name="rename" value="{!wish.name}"/> </apex:commandLink></td>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel rendered="{!IF(wish.forms == 'Send',TRUE, FALSE)}">
+                                                <td scope="row" data-label="Forms"></td>
+                                            </apex:outputPanel>
+                                        </tr>
+                                    </apex:repeat>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+            </main>
+            
+            <!-- Form Status Popup -->
+            <apex:outputPanel id="popup" layout="block" rendered="{!displaypopup}" >
+                <script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    $('#bg-chk1').modal('show');
+                });
+                </script>
+                <div class="modal fade" id="bg-chk1" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="bg-chk" aria-hidden="true">
+                    <div class="modal-dialog modal-lg" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                                <h5 class="modal-title text-md-center" id="exampleModalLongTitle">Form Status</h5>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <label class="form-check-label">Guardian Name</label>
+                                        <div class="m-title">
+                                            {!receipantName}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table m-t-2">
+                                        <thead>
+                                            <tr class="slds-text-heading--label">
+                                                <th class="slds-is-sortable" scope="col">
+                                                    <div class="slds-truncate">#
+                                                    </div>
+                                                </th>
+                                                <th class="slds-is-sortable" scope="col">
+                                                    <div class="slds-truncate">Form Name
+                                                    </div>
+                                                </th>
+                                                <th class="slds-is-sortable" scope="col">
+                                                    <div class="slds-truncate">On Behalf Of
+                                                    </div>
+                                                </th>
+                                                <th class="slds-is-sortable" scope="col">
+                                                    <div class="slds-truncate">Sent
+                                                    </div>
+                                                </th>
+                                                <th class="slds-is-sortable" scope="col">
+                                                    <div class="slds-truncate">Signed
+                                                    </div>
+                                                </th>
+                                                <th class="slds-is-sortable" scope="col">
+                                                    <div class="slds-truncate">Format
+                                                    </div>
+                                                </th>
+                                                <th class="slds-is-sortable" scope="col">
+                                                    <div class="slds-truncate">Action
+                                                    </div>
+                                                </th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <apex:variable var="i" value="{!1}"/> 
+                                            <apex:repeat value="{!docusignStatusList}" var="wish" id="table1">
+                                                <tr class="slds-hint-parent">
+                                                    <td class="slds-truncate" data-label="#" scope="row">{!i}</td>
+                                                    <td class="slds-truncate" data-label="form name" scope="row">{!wish.dsfs__Parent_Status_Record__r.dsfs__Subject__c}</td>
+                                                    <td class="slds-truncate" data-label="form name" scope="row">{!wish.dsfs__Parent_Status_Record__r.Associated_Childeren__c }</td>
+                                                    <td scope="row" data-label="Signed">
+                                                        <apex:outputText value="{0, DATE, MM'/'dd'/' yyyy}">
+                                                            <apex:param value="{!wish.dsfs__Date_Sent__c}"/>
+                                                        </apex:outputText>
+                                                    </td>
+                                                    <td data-label="Unsigned">
+                                                        <apex:outputText value="{0, DATE, MM'/'dd'/' yyyy}">
+                                                            <apex:param value="{!wish.dsfs__Date_Signed__c}"/>
+                                                        </apex:outputText>
+                                                    </td>
+                                                    
+                                                    <apex:outputPanel rendered="{!IF(wish.dsfs__DocuSign_Recipient_Email__c != 'notsent@noemail.com',TRUE, FALSE)}">
+                                                        <td>E-Signature</td> 
+                                                    </apex:outputPanel> 
+                                                    <apex:outputPanel rendered="{!IF(wish.dsfs__DocuSign_Recipient_Email__c == 'notsent@noemail.com',TRUE, FALSE)}">
+                                                        <td>In Person</td> 
+                                                    </apex:outputPanel> 
+                                                    <apex:outputPanel rendered="{!IF(wish.dsfs__Recipient_Status__c == 'Completed',TRUE, FALSE)}">
+                                                        <td> <apex:outputLink value="https://make-a-wish--fullcopy.cs16.my.salesforce.com//servlet/servlet.FileDownload?file={!wish.dsfs__Parent_Status_Record__r.AttachmentId__c}" target="_blank">View</apex:outputLink></td>
+                                                        <td><apex:commandLink value="Delete" action="{!displayDletePopup}"><apex:param name="envelopId" value="{!wish.dsfs__Envelope_Id__c}"/></apex:commandLink></td>
+                                                    </apex:outputPanel>
+                                                    <apex:outputPanel rendered="{!IF(AND(wish.dsfs__Recipient_Status__c == 'Sent',wish.dsfs__DocuSign_Recipient_Email__c != 'notsent@noemail.com'),TRUE, FALSE)}">
+                                                        <td><apex:commandLink value="Resend" action="{!sendEnvelopId}" oncomplete="showSuccessMsgInWindow('Your form has been successfully sent.')"><apex:param name="envelopId" value="{!wish.dsfs__Envelope_Id__c}"/></apex:commandLink></td>
+                                                        <td><apex:commandLink value="Delete" action="{!displayDletePopup}"><apex:param name="envelopId" value="{!wish.dsfs__Envelope_Id__c}"/></apex:commandLink></td>
+                                                    </apex:outputPanel>
+                                                    <apex:outputPanel rendered="{!IF(AND(wish.dsfs__Recipient_Status__c == 'Delivered',wish.dsfs__DocuSign_Recipient_Email__c != 'notsent@noemail.com'),TRUE, FALSE)}">
+                                                        <td><apex:commandLink value="Resend" action="{!sendEnvelopId}" oncomplete="showSuccessMsgInWindow('Your form has been successfully sent.')"><apex:param name="envelopId" value="{!wish.dsfs__Envelope_Id__c}"/></apex:commandLink></td>
+                                                        <td><apex:commandLink value="Delete" action="{!displayDletePopup}"><apex:param name="envelopId" value="{!wish.dsfs__Envelope_Id__c}"/></apex:commandLink></td>
+                                                    </apex:outputPanel>
+                                                    <apex:outputPanel rendered="{!IF(AND(wish.dsfs__Recipient_Status__c == 'Sent',wish.dsfs__DocuSign_Recipient_Email__c == 'notsent@noemail.com'),TRUE, FALSE)}">
+                                                        <td><apex:commandLink value="Sign Now" action="{!singNowEnvelop}"><apex:param name="envelopId" value="{!wish.dsfs__Envelope_Id__c}"/></apex:commandLink></td>
+                                                        <td><apex:commandLink value="Delete" action="{!displayDletePopup}"><apex:param name="envelopId" value="{!wish.dsfs__Envelope_Id__c}"/></apex:commandLink></td>
+                                                    </apex:outputPanel>
+                                                    <apex:outputPanel rendered="{!IF(AND(wish.dsfs__Recipient_Status__c == 'Delivered',wish.dsfs__DocuSign_Recipient_Email__c == 'notsent@noemail.com'),TRUE, FALSE)}">
+                                                        <td><apex:commandLink value="Sign Now" action="{!singNowEnvelop}"><apex:param name="envelopId" value="{!wish.dsfs__Envelope_Id__c}"/></apex:commandLink></td>
+                                                        <td><apex:commandLink value="Delete" action="{!displayDletePopup}"><apex:param name="envelopId" value="{!wish.dsfs__Envelope_Id__c}"/></apex:commandLink></td>
+                                                    </apex:outputPanel>
+                                                </tr>
+                                                <apex:variable var="i" value="{!i+1}"/>
+                                            </apex:repeat>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </apex:outputPanel>
+            <!-- End Form Status Popup -->
+            
+            <!-- Display Guardian Popup -->
+            <apex:outputPanel id="dispopup" layout="block" rendered="{!displayguardian}" >
+                <script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    $('#bg-chk2').modal('show');
+                });
+                </script>
+                
+                <!-- Modal -->
+                <div class="modal fade" id="bg-chk2" role="dialog" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="bg-chk" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <!-- Modal content-->
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <div id="info-msg">                                 
+                                </div>
+                                <apex:pagemessages id="msg" />
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                                <h5 class="modal-title text-md-center" id="exampleModalLongTitle">Send Additional Form</h5>
+                            </div>
+                            <div class="modal-body">
+                                <h6>SEND FORM TO</h6>
+                                <div class="form-group">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <label for="guardian-name" class="col-form-label"><apex:outputText value="Guardian Name"/></label>
+                                            <apex:selectList styleClass="form-control m-c-t" id="guardian-name" value="{!guardian}" multiselect="false" size="1">
+                                                <apex:selectOption itemlabel="Please select an individual." itemValue="" />
+                                                <apex:selectOptions value="{!ParentGurdianList}" />
+                                                <apex:actionSupport event="onchange" action="{!updateEmailValue}" />
+                                            </apex:selectList> 
+                                        </div>
+                                    </div>
+                                </div>
+                                <apex:outputPanel rendered="{!IF(guardian == 'Not listed',TRUE, FALSE)}">
+                                    <div class="form-group">
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <label for="parent-name" class="col-form-label"><apex:outputText value="Parent Name"/></label>
+                                                <apex:InputText styleClass="form-control m-c-t" id="parent-name" value="{!Name}"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </apex:outputPanel>
+                                <div class="form-group">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <label for="parent-email" class="col-form-label"><apex:outputText value="Parent Email"/></label>
+                                            <apex:InputText styleClass="form-control m-c-t" id="parent-email" value="{!Email}"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <label for="minor-participant" class="col-form-label"><apex:outputText value="Signing on Behalf of"/></label>
+                                            <apex:selectList styleClass="form-control m-c-t" value="{!miniorParticipantName}" id="minor-participant" multiselect="true">
+                                                <apex:selectOptions value="{!MinorParticipantList}" />
+                                            </apex:selectList> 
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <label for="select-form" class="col-form-label"><apex:outputText value="Select Form"/></label>
+                                            <apex:selectList styleClass="form-control m-c-t" value="{!selectedForm}" id="select-form" multiselect="false" size="1">
+                                                <apex:selectOption itemlabel="Please select any one form." itemValue="" />
+                                                <apex:selectOptions value="{!formselectionList}" />
+                                            </apex:selectList> 
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            <div class="modal-footer"> 
+                                <apex:commandButton styleClass="btn btn-primary" value="Cancel" action="{!cancel}" />
+                                <apex:commandButton styleClass="btn btn-primary" value="Send" action="{!sendEnvelopfromPopup}" oncomplete="showSuccessMsg('{!styleOption}');" reRender="none"/> 
+                                <apex:commandButton styleClass="btn btn-primary" value="Upload" action="{!UploadFile}"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </apex:outputPanel>
+            <!-- End Display Guardian Popup -->
+            
+            <!-- Display Dellete Popup -->
+            <apex:OutputPanel id="disdeletepopup" layout="block" rendered="{!deletePopup }">
+            <script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    $('#bg-chk3').modal('show');
+                });
+                </script>
+            
+            <div class="modal fade" id="bg-chk3" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="bg-chk" aria-hidden="true">
+                    <div class="modal-dialog modal-sm" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                                <h5 class="modal-title text-md-center" id="exampleModalLongTitle">ALERT</h5>
+                            </div>
+                            <div class="modal-body" style="text-align:center;">
+                                Are you sure to delete this record?
+                                
+                            </div>
+                            <div class="modal-footer" style="text-align:center;">
+                                <apex:commandButton styleClass="btn btn-primary" value="Delete" action="{!deleteStatusRec}"/> 
+                                <apex:commandButton styleClass="btn btn-primary" value="Cancel" action="{!cancel}"/>
+                                
+                            </div>
+                            </div>
+                            </div>
+                            </div>
+            </apex:OutputPanel>
+        </apex:form>
+        <span>
+            <footer class="container-fluid">
+                <div class="container">
+                    <section class="row">
+                        <div class="col-md-4 col-md-push-4">
+                            <a class=" btn-md cnt" href="https://wish.org/wishes/stay-in-touch">
+                                <div class="col-xs-8 rich-text">
+                                    <span class="title">Stay In Touch!</span>
+                                    <span class="detail">Sign up to receive email from Make-A-Wish.</span>
+                                </div>
+                            </a>
+                        </div>
+                    </section>
+                    <section class="row legal">
+                        <span class="col-sm-1 col-md-2 col-lg-1"><a class="bbb" href="http://wish.org/about-us/making-a-difference/managing-funds/better-business-bureau"><span class="sr-only">Better Business Bureau</span></a></span>
+                        <div class="col-sm-11 col-md-10 col-lg-11">
+                            <p>&copy;2006-2016 Make-A-Wish Foundation of America<br/>
+                                Make-A-Wish Foundation of America is an Arizona nonprofit corporation exempt from federal income tax under Section 501(c)(3) of the Internal Revenue Code.<br/>
+                                <a href="https://wish.org/content/terms-and-policy">Privacy Policy &amp; Terms</a> | <a href="https://wish.org/content/faq">FAQ</a></p>
+                        </div>
+                    </section>
+                </div>
+            </footer>
+        </span>
+       <script>window.jQuery || document.write('<script src="{!URLFOR($Resource.prospective_assets, 'web/js/jquery.min.js')}"><\/script>')</script>
+        <!-- bootstrap -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.2.0/js/tether.min.js" integrity="sha384-Plbmg8JY28KFelvJVai01l8WyZzrYWG825m+cZ0eDDS1f7d/js6ikvy1+X+guPIB" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.3/js/bootstrap.min.js" crossorigin="anonymous"></script>
+        <!-- bootstrap css fallback (appends to head) -->
+        <script>$.each(document.styleSheets, function(i,sheet){ if(sheet.href=='https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css') {var rules = sheet.rules ? sheet.rules : sheet.cssRules; if (rules.length == 0) { $('<link rel="stylesheet" type="text/css" href="css/lib/bootstrap.min.css" />').appendTo('head');} } });</script>
+        <script>
+            (function ($, root, undefined) {
+                // prepend meta/link tags before VF head output
+                $('head').prepend('<meta http-equiv="x-ua-compatible" content="ie=edge" /><meta http-equiv="content-type" content="text/html; charset=utf-8" /><meta name="HandheldFriendly" content="True" /><meta name="MobileOptimized" content="480" /><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" /><meta http-equiv="cleartype" content="on" />');
+                $('style').before('<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous" /><link rel="stylesheet" type="text/css" href="{!URLFOR($Resource.prospective_assets, 'web/css/core.css')}" media="all">');
+            })(jQuery);
+        </script>
+        <script>
+        function showSuccessMsg(key){
+            //alert(key);
+            $('#info-msg').empty();
+            if(key == 'success'){
+                $('#info-msg').append('<div class="notification"><div><h6>Your form has been successfully sent.</h6></div></div>').fadeIn();
+                $('.notification').delay(4000).fadeOut();
+                setInterval(function() {
+                    $('.notification').remove();
+                }, 4500);
+                window.top.location='/apex/WishGranting_VF?id={!currentPageId}';
+            }else if(key){
+             $('#info-msg').append('<div class="notification"><div class="error"><h6>'+key+'</h6></div></div>').fadeIn();
+            }
+        }
+        function showSuccessMsgInWindow(msg) {   
+            $('#bg-chk1').modal('hide');
+            $('body').append('<div class="notification-static"><div><h6>'+ msg +'</h6></div></div>').fadeIn();
+            $('.notification-static').delay(4000).fadeOut();
+            setInterval(function() {
+                $('.notification-static').remove();
+            }, 4500);            
+        }
+        </script>
+    </body>
+</apex:page>

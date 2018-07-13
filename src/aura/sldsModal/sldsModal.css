@@ -1,0 +1,12 @@
+.THIS .slds-white .slds-icon-text-default{
+    fill:rgb(255, 255, 255);
+}
+
+.THIS section.slds-modal.slds-modal-alertbox{
+    width:40% !important;
+    margin: 0px auto;
+}
+
+.THIS .slds-scope .slds-modal_medium .slds-modal__container{
+    width:70% !important;
+}
